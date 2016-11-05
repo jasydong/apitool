@@ -5,15 +5,147 @@
 	<meta charset="utf-8">
 	<title>API接口调试工具</title>
 	<link href="css/bootstrap.css" type="text/css" rel="stylesheet">
+    <link href="css/jsonview.css" type="text/css" rel="stylesheet">
+    <link href="css/autocomplete.css" type="text/css" rel="stylesheet">
+    <style>
+        .input-group-btn .btn-default, .input-group-btn .btn-info, .input-group-btn .btn-success, .input-group-btn .btn-primary {
+            height: 34px;
+        }
+        #result {
+            height: 300px;
+        }
+        .highlight {
+            margin-top: -16px;
+            margin-right: 0;
+            margin-left: 0;
+            border-width: 1px;
+            border-bottom-right-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+    </style>
 </head>
 <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">API接口调试工具</a>
+            </div>
+            <div id="navbar" class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="#about">更多设置</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="margin-top:120px;">
+        <div class="btn-group" id="btn-env">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                <span class="current-env">测试环境</span> <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a href="#">测试环境</a></li>
+                <li><a href="#">预发布环境</a></li>
+                <li><a href="#">线上正式环境</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container" style="margin-top:120px;">
+        <div class="input-group">
+            <span class="input-group-addon">Action</span>
+            <input type="text" class="form-control" id="input_method">
+            <span class="input-group-btn">
+                <button class="btn btn-default" type="button" id="btn_params">参数</button>
+                <button class="btn btn-primary" type="button" id="btn_go"> GO </button>
+            </span>
+        </div>
+    </div>
+
+    <div class="container" style="margin-top:120px;">
+        <div class="highlight">
+            <pre id="result"></pre>
+        </div>
+    </div>
+
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/bootstrap.js"></script>
+    <!--script type="text/javascript" src="js/autocomplete.js"></script-->
+    <script type="text/javascript" src="js/jsonview.js"></script>
+    <script type="text/javascript" src="js/default.js"></script>
 	<script type="text/javascript">
 
 		$(document).ready(function(){
 			//todo
 			console.info('API接口调试工具');
+
+            var sampleData = [
+              'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
+              'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 
+              'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 
+              'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 
+              'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 
+              'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+              'New Jersey', 'New Mexico', 'New York', 'North Carolina', 
+              'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 
+              'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 
+              'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 
+              'West Virginia', 'Wisconsin', 'Wyoming'
+            ];
+
+            var url = 'http://192.168.127.128/linux-dash/server/index.php?module=io_stats';
+
+            var ApiTool = {};
+
+            
+            //$("#input_method").autocomplete({
+            //     source:[sampleData]
+            //});
+
+            $.get(url, function(data){
+
+                    var cleanData = '';
+                    var callback = '';
+
+                    var callback_results = jsonp_regex.exec(data);
+                    if( callback_results && callback_results.length == 3 ){
+                        console.log("THIS IS JSONP");
+                        callback = callback_results[1];
+                        cleanData = callback_results[2];
+                    } else {
+                        console.log("Vanilla JSON");
+                        cleanData = data;
+                    }
+                    console.log(cleanData);
+                      
+                    // Covert, and catch exceptions on failure
+                    try {
+                        // var jsonObj = this.nativeJSON.decode(cleanData);
+                        var jsonObj = JSON.parse(cleanData);
+                        if ( jsonObj ) {        
+                          output = jsonFormatter.jsonToHTML(jsonObj, callback, url);
+                          $("#result").html(output);
+                        } else {
+                          throw "There was no object!";
+                        }
+                    } catch(e) {
+                        console.log(e);
+                        output = jsonFormatter.errorPage(e, data, url);
+                    }
+			});
+            
+            //选项
+            $("#btn-env .dropdown-menu").find("a").click(function() {
+                var envname = $(this).html();
+                if(envname) {
+                    $("#btn-env").find('.current-env').text(envname);
+                }
+            });
 		});
 
 	</script>
