@@ -121,7 +121,7 @@
                 <input type="text" class="form-control input-sm params-value" placeholder="value">
             </div>
             <span class="input-group-btn">
-                <button class="btn btn-danger btn-sm" type="button">DEL</button>
+                <button class="btn btn-danger btn-sm" type="button">删除</button>
             </span>
         </div>
     </div>
@@ -140,53 +140,41 @@
             </div>
         </div>
     </div>
-    
-    <div class="container">
-        <ul class="nav nav-tabs" id="tabpage">
-            <li role="presentation" class="active"><a href="#">Home</a></li>
-            <li role="presentation"><a href="#">Profile</a></li>
-            <li role="presentation"><a href="#">Messages</a></li>
-        </ul>
-    </div>
 
-    
- 
-    
-<div class="modal fade" id="settingsModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">
-                    <span aria-hidden="true">&times;</span>
-                    <span class="sr-only">Close</span>
-                </button>
-                <h4 class="modal-title" id="settingsModalLabel">接口配置管理</h4>
-            </div>
-            <div class="modal-body">
-                <div class="input-group box-env" id="env_settings">
-                    <div class="env-item">
-                        <input type="text" class="form-control input-sm env-name" placeholder="接口环境名称">
-                        <input type="text" class="form-control input-sm env-url" placeholder="接口URL">
-                    </div>
-                    <span class="input-group-btn env-item-delete">
-                        <button class="btn btn-danger btn-sm" type="button">DEL</button>
-                    </span>
+    <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="settingsModalLabel">接口配置管理</h4>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
+                <div class="modal-body" id="env_settings">
+                    <div class="input-group box-env">
+                        <div class="env-item">
+                            <input type="text" class="form-control input-sm env-item-name" placeholder="接口环境名称">
+                            <input type="text" class="form-control input-sm env-item-url" placeholder="接口URL">
+                        </div>
+                        <span class="input-group-btn">
+                            <button class="btn btn-danger btn-sm" type="button">删除</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="btn_save_settings">保存配置</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-
 
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/bootstrap.js"></script>
     <script type="text/javascript" src="js/autocomplete.js"></script>
     <script type="text/javascript" src="js/jsonview.js"></script>
+    <script type="text/javascript" src="js/webstorage.js"></script>
     <script type="text/javascript" src="js/default.js"></script>
 	<script type="text/javascript">
 
@@ -214,11 +202,13 @@
 
             //初始化设置面板
             //init_settings_modal();
+            //初始化设置
+            init_settings();
 
             $("#input_method").autocomplete({
                  source:[sampleData]
             });
-            
+
             $("#btn_params").click(function(){
                 $("#container_params").toggle();
             });
@@ -231,33 +221,31 @@
             $(document).on('click', '#container_params .box-params:last input', function(){
                 var html = '';
                 html += '<div class="input-group box-params">';
-                html += '  <div class="params-box">';
-                html += '    <input type="text" class="form-control input-sm params-key" placeholder="key">';
-                html += '    <input type="text" class="form-control input-sm params-value" placeholder="value">';
-                html += '  </div>';
-                html += '  <span class="input-group-btn params-item-delete">';
-                html += '    <button class="btn btn-danger btn-sm" type="button">DEL</button>';
-                html += '  </span>';
-                html += '</div>';
-
-                $("#container_params").append(html);
-                console.info("last clicked!");
-            });
-            
-            $(document).on('click', '#env_settings .env-item:last input', function(){
-                var html = '';
-                html += '<div class="input-group box-params">';
                 html += '  <div class="params-item">';
                 html += '    <input type="text" class="form-control input-sm params-key" placeholder="key">';
                 html += '    <input type="text" class="form-control input-sm params-value" placeholder="value">';
                 html += '  </div>';
                 html += '  <span class="input-group-btn params-item-delete">';
-                html += '    <button class="btn btn-danger btn-sm" type="button">DEL</button>';
+                html += '    <button class="btn btn-danger btn-sm" type="button">删除</button>';
                 html += '  </span>';
                 html += '</div>';
 
                 $("#container_params").append(html);
-                console.info("last clicked!");
+            });
+
+            $(document).on('click', '#env_settings .env-item:last input', function(){
+                var html = '';
+                html += '<div class="input-group box-env">';
+                html += '  <div class="env-item">';
+                html += '    <input type="text" class="form-control input-sm env-item-name" placeholder="接口环境名称">';
+                html += '    <input type="text" class="form-control input-sm env-item-url" placeholder="接口URL">';
+                html += '  </div>';
+                html += '  <span class="input-group-btn env-item-delete">';
+                html += '    <button class="btn btn-danger btn-sm" type="button">删除</button>';
+                html += '  </span>';
+                html += '</div>';
+
+                $("#env_settings").append(html);
             });
 
             $(document).on('click', '#container_params .params-item-delete', function(){
@@ -269,9 +257,49 @@
             });
 
             $("#btn_go").click(function(){
-                var params = {};
-                request(url, params);
+                var params = get_params_data();
+
+                console.info(params);
+                //发送请求
+                request(url, params, function(data){
+                    $("#result").html(data);
+                });
             });
+
+            $(document).on('click', '#btn_save_settings', function(){
+                var data = [];
+                var env_settings = $("#env_settings .env-item");
+                
+                env_settings.each(function(){
+                    var item = {};
+                    var eleEnvItem = $(this);
+                    item.name = eleEnvItem.find(".env-item-name:eq(0)").val();
+                    item.url = eleEnvItem.find(".env-item-url:eq(0)").val();
+                    if (item.name != '' && item.url != '') {
+                        data.push(item);
+                    }
+                });
+
+                webStorage.set('env_settings', data);
+                $("#settingsModal").modal('hide');
+            });
+
+            function get_params_data() {
+                var data = {};
+                var params = $("#container_params .params-item");
+
+                params.each(function(){
+                    var eleParamsItem = $(this);
+                    var key = eleParamsItem.find(".params-key:eq(0)").val();
+                    var value = eleParamsItem.find(".params-value:eq(0)").val();
+
+                    if (key != '') {
+                        data[key] = value;
+                    }
+                });
+
+                return data;
+            }
 
             function init_settings_modal() {
                 var html = '';
@@ -294,9 +322,40 @@
                 $('body').append(html);
             }
 
+            function get_env_item_html(item) {
+                var html = '';
+
+                html += '<div class="input-group box-env">';
+                html += '  <div class="env-item">';
+                html += '    <input type="text" value="' + item.name + '" class="form-control input-sm env-item-name" placeholder="接口环境名称">';
+                html += '    <input type="text" value="' + item.url + '" class="form-control input-sm env-item-url" placeholder="接口URL">';
+                html += '  </div>';
+                html += '  <span class="input-group-btn env-item-delete">';
+                html += '    <button class="btn btn-danger btn-sm" type="button">删除</button>';
+                html += '  </span>';
+                html += '</div>';
+
+                return html;
+            }
+
+            function init_settings() {
+                var html = '';
+                var settings = webStorage.get('env_settings');
+                
+                if (settings) {
+                    var len = settings.length;
+                    for (var i=0; i<len; i++) {
+                        html += get_env_item_html(settings[i]);
+                    }
+
+                    $("#env_settings").html(html);
+                }
+            }
+
             function request(url, params, callback) {
                 $.get(url, params, function(data){
 
+                        var output = '';
                         var cleanData = '';
                         var callbackData = '';
 
@@ -309,7 +368,7 @@
                             console.log("Vanilla JSON");
                             cleanData = data;
                         }
-                        console.log(cleanData);
+                        //console.log(cleanData);
                           
                         // Covert, and catch exceptions on failure
                         try {
@@ -317,13 +376,12 @@
                             var jsonObj = JSON.parse(cleanData);
                             if ( jsonObj ) {
                               output = jsonFormatter.jsonToHTML(jsonObj, callbackData, url);
-                              $("#result").html(output);
                             } else {
                               throw "There was no object!";
                             }
                             //callback
                             if (callback) {
-                                callback();
+                                callback(output);
                             }
                         } catch(e) {
                             console.log(e);
