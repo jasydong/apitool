@@ -12,6 +12,7 @@
             height: 34px;
         }
         #result {
+            border:none;
             height: 300px;
         }
         #input_method {
@@ -24,6 +25,44 @@
             border-width: 1px;
             border-bottom-right-radius: 4px;
             border-bottom-left-radius: 4px;
+        }
+        .box {
+            position: relative;
+            border-radius: 3px;
+            background: #ffffff;
+            border-top: 3px solid #d2d6de;
+            margin-bottom: 20px;
+            width: 100%;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+        }
+        .box.box-info {
+            border-top-color: #00c0ef;
+        }
+        .box-header {
+            color: #444;
+            display: block;
+            padding: 10px;
+            /*background: #d9f7ff;*/
+            position: relative;
+        }
+        .box-header.with-border {
+            border-bottom: 1px solid #f4f4f4;
+        }
+        .box-body {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 3px;
+            border-bottom-left-radius: 3px;
+        }
+        .box-params, .box-env {
+            width: 70%;
+            text-align: center;
+            /*margin-top: 12px;*/
+            margin-left: 64px;
+            margin-right: 120px;
+        }
+        .box-params .form-control, .box-env .form-control {
+            width: 50%;
         }
     </style>
 </head>
@@ -46,7 +85,7 @@
         </div>
     </nav>
 
-    <div class="container" style="margin-top:120px;">
+    <div class="container" style="margin-top:60px;">
         <div class="btn-group" id="btn-env">
             <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
                 <span class="current-env">测试环境</span> <span class="caret"></span>
@@ -60,21 +99,89 @@
     </div>
 
     <div class="container" style="margin-top:120px;">
-        <div class="input-group">
-            <span class="input-group-addon">Action</span>
-            <input type="text" class="form-control" id="input_method">
+        <div class="box box-info">
+            <div class="box-header with-border"></div>
+            <div class="box-body">
+                <div class="input-group">
+                    <span class="input-group-addon">Action</span>
+                    <input type="text" class="form-control" id="input_method">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" id="btn_params">参数</button>
+                        <button class="btn btn-primary" type="button" id="btn_go"> GO </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" style="margin-top:12px;display:none;" id="container_params">
+        <div class="input-group box-params">
+            <div class="params-item">
+                <input type="text" class="form-control input-sm params-key" placeholder="key">
+                <input type="text" class="form-control input-sm params-value" placeholder="value">
+            </div>
             <span class="input-group-btn">
-                <button class="btn btn-default" type="button" id="btn_params">参数</button>
-                <button class="btn btn-primary" type="button" id="btn_go"> GO </button>
+                <button class="btn btn-danger btn-sm" type="button">DEL</button>
             </span>
         </div>
     </div>
 
     <div class="container" style="margin-top:120px;">
-        <div class="highlight">
-            <pre id="result"></pre>
+        <div class="box box-info">
+            <div class="box-header">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default btn-sm">格式化</button>
+                    <button type="button" class="btn btn-default btn-sm">原始数据</button>
+                    <button type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#settingsModal">接口配置管理</button>
+                </div>
+            </div>
+            <div class="box-body">
+                <pre id="result"></pre>
+            </div>
         </div>
     </div>
+    
+    <div class="container">
+        <ul class="nav nav-tabs" id="tabpage">
+            <li role="presentation" class="active"><a href="#">Home</a></li>
+            <li role="presentation"><a href="#">Profile</a></li>
+            <li role="presentation"><a href="#">Messages</a></li>
+        </ul>
+    </div>
+
+    
+ 
+    
+<div class="modal fade" id="settingsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="settingsModalLabel">接口配置管理</h4>
+            </div>
+            <div class="modal-body">
+                <div class="input-group box-env" id="env_settings">
+                    <div class="env-item">
+                        <input type="text" class="form-control input-sm env-name" placeholder="接口环境名称">
+                        <input type="text" class="form-control input-sm env-url" placeholder="接口URL">
+                    </div>
+                    <span class="input-group-btn env-item-delete">
+                        <button class="btn btn-danger btn-sm" type="button">DEL</button>
+                    </span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/bootstrap.js"></script>
@@ -105,42 +212,125 @@
 
             var ApiTool = {};
 
-            
+            //初始化设置面板
+            //init_settings_modal();
+
             $("#input_method").autocomplete({
                  source:[sampleData]
             });
+            
+            $("#btn_params").click(function(){
+                $("#container_params").toggle();
+            });
 
-            $.get(url, function(data){
+            $("#tabpage").click(function(e) {
+                e.preventDefault();
+                $(this).tab('show');
+            });
 
-                    var cleanData = '';
-                    var callback = '';
+            $(document).on('click', '#container_params .box-params:last input', function(){
+                var html = '';
+                html += '<div class="input-group box-params">';
+                html += '  <div class="params-box">';
+                html += '    <input type="text" class="form-control input-sm params-key" placeholder="key">';
+                html += '    <input type="text" class="form-control input-sm params-value" placeholder="value">';
+                html += '  </div>';
+                html += '  <span class="input-group-btn params-item-delete">';
+                html += '    <button class="btn btn-danger btn-sm" type="button">DEL</button>';
+                html += '  </span>';
+                html += '</div>';
 
-                    var callback_results = jsonp_regex.exec(data);
-                    if( callback_results && callback_results.length == 3 ){
-                        console.log("THIS IS JSONP");
-                        callback = callback_results[1];
-                        cleanData = callback_results[2];
-                    } else {
-                        console.log("Vanilla JSON");
-                        cleanData = data;
-                    }
-                    console.log(cleanData);
-                      
-                    // Covert, and catch exceptions on failure
-                    try {
-                        // var jsonObj = this.nativeJSON.decode(cleanData);
-                        var jsonObj = JSON.parse(cleanData);
-                        if ( jsonObj ) {        
-                          output = jsonFormatter.jsonToHTML(jsonObj, callback, url);
-                          $("#result").html(output);
+                $("#container_params").append(html);
+                console.info("last clicked!");
+            });
+            
+            $(document).on('click', '#env_settings .env-item:last input', function(){
+                var html = '';
+                html += '<div class="input-group box-params">';
+                html += '  <div class="params-item">';
+                html += '    <input type="text" class="form-control input-sm params-key" placeholder="key">';
+                html += '    <input type="text" class="form-control input-sm params-value" placeholder="value">';
+                html += '  </div>';
+                html += '  <span class="input-group-btn params-item-delete">';
+                html += '    <button class="btn btn-danger btn-sm" type="button">DEL</button>';
+                html += '  </span>';
+                html += '</div>';
+
+                $("#container_params").append(html);
+                console.info("last clicked!");
+            });
+
+            $(document).on('click', '#container_params .params-item-delete', function(){
+                $(this).parent().remove();
+            });
+
+            $(document).on('click', '#settingsModal .env-item-delete', function(){
+                $(this).parent().remove();
+            });
+
+            $("#btn_go").click(function(){
+                var params = {};
+                request(url, params);
+            });
+
+            function init_settings_modal() {
+                var html = '';
+                html += '<div class="modal fade" id="setttingsModal" tabindex="-1" role="dialog">';
+                html += '  <div class="modal-dialog">';
+                html += '    <div class="modal-content">';
+                html += '      <div class="modal-header">';
+                html += '        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>';
+                html += '        <h4 class="modal-title" id="myModalLabel">Modal title</h4>';
+                html += '      </div>';
+                html += '      <div class="modal-body"></div>';
+                html += '      <div class="modal-footer">';
+                html += '        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>';
+                html += '        <button type="button" class="btn btn-primary">Save changes</button>';
+                html += '      </div>';
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
+                
+                $('body').append(html);
+            }
+
+            function request(url, params, callback) {
+                $.get(url, params, function(data){
+
+                        var cleanData = '';
+                        var callbackData = '';
+
+                        var callback_results = jsonp_regex.exec(data);
+                        if( callback_results && callback_results.length == 3 ){
+                            console.log("THIS IS JSONP");
+                            callbackData = callback_results[1];
+                            cleanData = callback_results[2];
                         } else {
-                          throw "There was no object!";
+                            console.log("Vanilla JSON");
+                            cleanData = data;
                         }
-                    } catch(e) {
-                        console.log(e);
-                        output = jsonFormatter.errorPage(e, data, url);
-                    }
-			});
+                        console.log(cleanData);
+                          
+                        // Covert, and catch exceptions on failure
+                        try {
+                            // var jsonObj = this.nativeJSON.decode(cleanData);
+                            var jsonObj = JSON.parse(cleanData);
+                            if ( jsonObj ) {
+                              output = jsonFormatter.jsonToHTML(jsonObj, callbackData, url);
+                              $("#result").html(output);
+                            } else {
+                              throw "There was no object!";
+                            }
+                            //callback
+                            if (callback) {
+                                callback();
+                            }
+                        } catch(e) {
+                            console.log(e);
+                            output = jsonFormatter.errorPage(e, data, url);
+                        }
+                });
+            }
             
             //选项
             $("#btn-env .dropdown-menu").find("a").click(function() {
