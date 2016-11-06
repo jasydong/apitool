@@ -86,7 +86,7 @@
     </nav>
 
     <div class="container" style="margin-top:60px;">
-        <div class="btn-group" id="btn-env">
+        <div class="btn-group" id="env_menu">
             <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
                 <span class="current-env">测试环境</span> <span class="caret"></span>
             </button>
@@ -218,6 +218,14 @@
                 $(this).tab('show');
             });
 
+            //接口环境菜单选项
+            $("#env_menu .dropdown-menu").find("a").click(function() {
+                var envname = $(this).html();
+                if(envname) {
+                    $("#env_menu").find('.current-env').text(envname);
+                }
+            });
+
             $(document).on('click', '#container_params .box-params:last input', function(){
                 var html = '';
                 html += '<div class="input-group box-params">';
@@ -337,18 +345,34 @@
 
                 return html;
             }
+            
+            function get_env_menu_html(item) {
+                var html = '';
+
+                html += '<li><a href="#">' + item.name + '</a></li>';
+
+                return html;
+            }
 
             function init_settings() {
-                var html = '';
+                var env_settings_html = '';
+                var env_menu_html = '';
+                var current_env = '';
                 var settings = webStorage.get('env_settings');
                 
                 if (settings) {
                     var len = settings.length;
                     for (var i=0; i<len; i++) {
-                        html += get_env_item_html(settings[i]);
+                        if (i == 0) {
+                            current_env = settings[i]['name'];
+                        }
+                        env_settings_html += get_env_item_html(settings[i]);
+                        env_menu_html += get_env_menu_html(settings[i]);
                     }
 
-                    $("#env_settings").html(html);
+                    $("#env_settings").html(env_settings_html);
+                    $("#env_menu").find('.current-env').text(current_env);
+                    $("#env_menu .dropdown-menu").html(env_menu_html);
                 }
             }
 
@@ -389,16 +413,7 @@
                         }
                 });
             }
-            
-            //选项
-            $("#btn-env .dropdown-menu").find("a").click(function() {
-                var envname = $(this).html();
-                if(envname) {
-                    $("#btn-env").find('.current-env').text(envname);
-                }
-            });
 		});
-
 	</script>
 </body>
 </html>
