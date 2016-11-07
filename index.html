@@ -64,6 +64,12 @@
         .box-params .form-control, .box-env .form-control {
             width: 50%;
         }
+		.params-item .params-value, .env-item .env-item-url {
+			border-left: none;
+		}
+		#env_settings .input-group, #container_params .input-group {
+			margin-bottom: 2px;
+		}
     </style>
 </head>
 <body>
@@ -175,7 +181,6 @@
     <script type="text/javascript" src="js/autocomplete.js"></script>
     <script type="text/javascript" src="js/jsonview.js"></script>
     <script type="text/javascript" src="js/webstorage.js"></script>
-    <script type="text/javascript" src="js/default.js"></script>
 	<script type="text/javascript">
 
 		$(document).ready(function(){
@@ -196,9 +201,8 @@
               'West Virginia', 'Wisconsin', 'Wyoming'
             ];
 
-            var url = 'http://192.168.127.128/linux-dash/server/index.php?module=io_stats';
-
             var ApiTool = {};
+			ApiTool.api_url = 'http://vm.boyaa.com/linux-dash/server/index.php?module=io_stats';
 
             //初始化设置面板
             //init_settings_modal();
@@ -221,7 +225,19 @@
             //接口环境菜单选项
             $("#env_menu .dropdown-menu").find("a").click(function() {
                 var envname = $(this).html();
-                if(envname) {
+				var settings = webStorage.get('env_settings');
+
+                if (settings) {
+                    var len = settings.length;
+                    for (var i=0; i<len; i++) {
+                        if (envname == settings[i]['name']) {
+							ApiTool.api_url = settings[i]['url'];
+							break;
+                        }
+                    }
+				}
+
+				if(envname) {
                     $("#env_menu").find('.current-env').text(envname);
                 }
             });
@@ -267,9 +283,12 @@
             $("#btn_go").click(function(){
                 var params = get_params_data();
 
-                console.info(params);
+				if (ApiTool.api_url) {
+					params['api_url'] = ApiTool.api_url;
+				}
+
                 //发送请求
-                request(url, params, function(data){
+                request('get.php', params, function(data){
                     $("#result").html(data);
                 });
             });
@@ -365,6 +384,7 @@
                     for (var i=0; i<len; i++) {
                         if (i == 0) {
                             current_env = settings[i]['name'];
+							ApiTool.api_url = settings[i]['url'];
                         }
                         env_settings_html += get_env_item_html(settings[i]);
                         env_menu_html += get_env_menu_html(settings[i]);
@@ -379,30 +399,36 @@
             function request(url, params, callback) {
                 $.get(url, params, function(data){
 
-                        var output = '';
+                        var output = data;
                         var cleanData = '';
                         var callbackData = '';
+						var jsonRegex = /^\s*([\[\{].*[\}\]])\s*$/;
+						var jsonpRegex = /^[\s\u200B\uFEFF]*([\w$\[\]\.]+)[\s\u200B\uFEFF]*\([\s\u200B\uFEFF]*([\[{][\s\S]*[\]}])[\s\u200B\uFEFF]*\);?[\s\u200B\uFEFF]*$/;
+						var jsonpRegex2 = /([\[\{][\s\S]*[\]\}])\);/ // more liberal support
+						var isJson = jsonRegex.test(data);
+						var isJsonp = jsonpRegex.test(data);
 
-                        var callback_results = jsonp_regex.exec(data);
-                        if( callback_results && callback_results.length == 3 ){
-                            console.log("THIS IS JSONP");
+                        var callback_results = jsonpRegex.exec(data);
+                        if (callback_results && callback_results.length == 3) {
+                            //console.log("THIS IS JSONP");
                             callbackData = callback_results[1];
                             cleanData = callback_results[2];
-                        } else {
-                            console.log("Vanilla JSON");
+                        } else if (isJson) {
+                            //console.log("Vanilla JSON");
                             cleanData = data;
                         }
-                        //console.log(cleanData);
-                          
+
                         // Covert, and catch exceptions on failure
                         try {
                             // var jsonObj = this.nativeJSON.decode(cleanData);
-                            var jsonObj = JSON.parse(cleanData);
-                            if ( jsonObj ) {
-                              output = jsonFormatter.jsonToHTML(jsonObj, callbackData, url);
-                            } else {
-                              throw "There was no object!";
-                            }
+							if (isJson || isJsonp) {
+								var jsonObj = JSON.parse(cleanData);
+								if ( jsonObj ) {
+								  output = jsonFormatter.jsonToHTML(jsonObj, callbackData, url);
+								} else {
+								  throw "There was no object!";
+								}
+							}
                             //callback
                             if (callback) {
                                 callback(output);
