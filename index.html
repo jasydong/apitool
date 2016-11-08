@@ -12,12 +12,22 @@
             height: 34px;
         }
         #result {
+			height: 300px;
             border:none;
-            height: 300px;
+			background: #f6f6f6;
+            border-radius: 0;
         }
         #input_method {
             border-radius: 0;
         }
+		#env_menu, #btn_settings {
+			float: right;
+		}
+		#container_params {
+			display: none;
+			margin-top: 12px;
+			margin-bottom: 12px;
+		}
         .highlight {
             margin-top: -16px;
             margin-right: 0;
@@ -27,37 +37,24 @@
             border-bottom-left-radius: 4px;
         }
         .box {
-            position: relative;
-            border-radius: 3px;
-            background: #ffffff;
+			float: left;
+			width: 100%;
+            background: #f2f2f2;
             border-top: 3px solid #d2d6de;
             margin-bottom: 20px;
-            width: 100%;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
         }
         .box.box-info {
-            border-top-color: #00c0ef;
+            border-top-color: #337ab7;
         }
         .box-header {
             color: #444;
             display: block;
             padding: 10px;
-            /*background: #d9f7ff;*/
             position: relative;
-        }
-        .box-header.with-border {
-            border-bottom: 1px solid #f4f4f4;
-        }
-        .box-body {
-            border-top-left-radius: 0;
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 3px;
-            border-bottom-left-radius: 3px;
         }
         .box-params, .box-env {
             width: 70%;
             text-align: center;
-            /*margin-top: 12px;*/
             margin-left: 64px;
             margin-right: 120px;
         }
@@ -85,7 +82,7 @@
             </div>
             <div id="navbar" class="collapse navbar-collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="#about">更多设置</a></li>
+                    <li><a href="#about"></a></li>
                 </ul>
             </div>
         </div>
@@ -98,17 +95,14 @@
             </button>
             <ul class="dropdown-menu">
                 <li><a href="#">测试环境</a></li>
-                <li><a href="#">预发布环境</a></li>
-                <li><a href="#">线上正式环境</a></li>
             </ul>
         </div>
     </div>
 
     <div class="container" style="margin-top:120px;">
         <div class="box box-info">
-            <div class="box-header with-border"></div>
             <div class="box-body">
-                <div class="input-group">
+                <div class="input-group" style="margin:8px;">
                     <span class="input-group-addon">Action</span>
                     <input type="text" class="form-control" id="input_method">
                     <span class="input-group-btn">
@@ -116,21 +110,23 @@
                         <button class="btn btn-primary" type="button" id="btn_go"> GO </button>
                     </span>
                 </div>
+
+				<div id="container_params">
+					<div class="input-group box-params">
+						<div class="params-item">
+							<input type="text" class="form-control input-sm params-key" placeholder="key">
+							<input type="text" class="form-control input-sm params-value" placeholder="value">
+						</div>
+						<span class="input-group-btn">
+							<button class="btn btn-danger btn-sm" type="button">删除</button>
+						</span>
+					</div>
+				</div>
             </div>
         </div>
     </div>
 
-    <div class="container" style="margin-top:12px;display:none;" id="container_params">
-        <div class="input-group box-params">
-            <div class="params-item">
-                <input type="text" class="form-control input-sm params-key" placeholder="key">
-                <input type="text" class="form-control input-sm params-value" placeholder="value">
-            </div>
-            <span class="input-group-btn">
-                <button class="btn btn-danger btn-sm" type="button">删除</button>
-            </span>
-        </div>
-    </div>
+
 
     <div class="container" style="margin-top:120px;">
         <div class="box box-info">
@@ -181,28 +177,16 @@
     <script type="text/javascript" src="js/autocomplete.js"></script>
     <script type="text/javascript" src="js/jsonview.js"></script>
     <script type="text/javascript" src="js/webstorage.js"></script>
+	<script type="text/javascript" src="js/methods.js"></script>
 	<script type="text/javascript">
 
 		$(document).ready(function(){
 			//todo
 			console.info('API接口调试工具');
 
-            var sampleData = [
-              'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
-              'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 
-              'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 
-              'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 
-              'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 
-              'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-              'New Jersey', 'New Mexico', 'New York', 'North Carolina', 
-              'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 
-              'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 
-              'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 
-              'West Virginia', 'Wisconsin', 'Wyoming'
-            ];
-
             var ApiTool = {};
-			ApiTool.api_url = 'http://vm.boyaa.com/linux-dash/server/index.php?module=io_stats';
+			var jsonFormatter = new JSONFormatter();
+			ApiTool.api_url = '';
 
             //初始化设置面板
             //init_settings_modal();
@@ -210,7 +194,8 @@
             init_settings();
 
             $("#input_method").autocomplete({
-                 source:[sampleData]
+				openOnFocus:true,
+                source:[apiListData]
             });
 
             $("#btn_params").click(function(){
