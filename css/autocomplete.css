@@ -6,13 +6,13 @@
 }
 
 .xdsoft_autocomplete{
-display:inline;
-position:relative;
-word-spacing: normal;
-text-transform: none;
-text-indent: 0px;
-text-shadow: none;
-text-align: start;
+	display:inline;
+	position:relative;
+	word-spacing: normal;
+	text-transform: none;
+	text-indent: 0px;
+	text-shadow: none;
+	text-align: start;
 }
 
 .xdsoft_autocomplete .xdsoft_input{
@@ -48,7 +48,7 @@ text-align: start;
 	opacity: 0.0;
 }
 .xdsoft_autocomplete .xdsoft_autocomplete_dropdown {
-    max-height: 150px;
+    max-height: 200px;
     overflow-y: scroll;
 }
 .xdsoft_autocomplete .xdsoft_autocomplete_dropdown > .xdsoft_autocomplete_copyright{

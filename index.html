@@ -8,11 +8,29 @@
     <link href="css/jsonview.css" type="text/css" rel="stylesheet">
     <link href="css/autocomplete.css" type="text/css" rel="stylesheet">
     <style>
-        .input-group-btn .btn-default, .input-group-btn .btn-info, .input-group-btn .btn-success, .input-group-btn .btn-primary {
+
+		/*Chrome滚动条样式*/
+		::-webkit-scrollbar {
+			width: 8px;
+			height: 8px;
+
+		}
+		::-webkit-scrollbar-track {
+			-webkit-box-shadow: inset 0 0 1px rgba(0,0,0,0.5);
+			border-radius: 4px;
+		}
+		::-webkit-scrollbar-thumb {
+			border-radius: 4px;
+			-webkit-box-shadow: inset 0 0 1px rgba(0,0,0,.5);
+			background-color: #337ab7;
+		}
+
+        .input-group-btn .btn-default, .input-group-btn .btn-info, 
+		.input-group-btn .btn-success, .input-group-btn .btn-primary {
             height: 34px;
         }
         #result {
-			height: 300px;
+			height: 480px;
             border:none;
 			background: #f6f6f6;
             border-radius: 0;
@@ -20,7 +38,7 @@
         #input_method {
             border-radius: 0;
         }
-		#env_menu, #btn_settings {
+		#env_menu {
 			float: right;
 		}
 		#container_params {
@@ -53,10 +71,8 @@
             position: relative;
         }
         .box-params, .box-env {
-            width: 70%;
-            text-align: center;
-            margin-left: 64px;
-            margin-right: 120px;
+            width: 90%;
+            margin-left: 5%;
         }
         .box-params .form-control, .box-env .form-control {
             width: 50%;
@@ -99,7 +115,7 @@
         </div>
     </div>
 
-    <div class="container" style="margin-top:120px;">
+    <div class="container" style="margin-top:60px;">
         <div class="box box-info">
             <div class="box-body">
                 <div class="input-group" style="margin:8px;">
@@ -126,48 +142,17 @@
         </div>
     </div>
 
-
-
     <div class="container" style="margin-top:120px;">
         <div class="box box-info">
             <div class="box-header">
                 <div class="btn-group">
                     <button type="button" class="btn btn-default btn-sm">格式化</button>
                     <button type="button" class="btn btn-default btn-sm">原始数据</button>
-                    <button type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#settingsModal">接口配置管理</button>
+                    <button type="button" class="btn btn-default btn-sm" id="btn_settings">接口配置管理</button>
                 </div>
             </div>
             <div class="box-body">
                 <pre id="result"></pre>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span aria-hidden="true">&times;</span>
-                        <span class="sr-only">Close</span>
-                    </button>
-                    <h4 class="modal-title" id="settingsModalLabel">接口配置管理</h4>
-                </div>
-                <div class="modal-body" id="env_settings">
-                    <div class="input-group box-env">
-                        <div class="env-item">
-                            <input type="text" class="form-control input-sm env-item-name" placeholder="接口环境名称">
-                            <input type="text" class="form-control input-sm env-item-url" placeholder="接口URL">
-                        </div>
-                        <span class="input-group-btn">
-                            <button class="btn btn-danger btn-sm" type="button">删除</button>
-                        </span>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                    <button type="button" class="btn btn-primary" id="btn_save_settings">保存配置</button>
-                </div>
             </div>
         </div>
     </div>
@@ -189,7 +174,9 @@
 			ApiTool.api_url = '';
 
             //初始化设置面板
-            //init_settings_modal();
+            init_settings_modal();
+			//初始获取SESSID面板
+			init_get_sessid_modal();
             //初始化设置
             init_settings();
 
@@ -242,6 +229,15 @@
                 $("#container_params").append(html);
             });
 
+			$(document).on('click', '#container_params .params-value', function(){
+                var parent = $(this).parent();
+				var paramKey = parent.find(".params-key:eq(0)").val();
+
+				if (paramKey == 'ssid') {
+					$("#getSessidModal").modal('show');
+				}
+            });
+
             $(document).on('click', '#env_settings .env-item:last input', function(){
                 var html = '';
                 html += '<div class="input-group box-env">';
@@ -267,6 +263,11 @@
 
             $("#btn_go").click(function(){
                 var params = get_params_data();
+				var apiMethod = $("#input_method").val();
+
+				if (apiMethod) {
+					params['action'] = apiMethod;
+				}
 
 				if (ApiTool.api_url) {
 					params['api_url'] = ApiTool.api_url;
@@ -278,10 +279,14 @@
                 });
             });
 
+			$("#btn_settings").click(function(){
+                $("#settingsModal").modal('show');
+            });
+
             $(document).on('click', '#btn_save_settings', function(){
                 var data = [];
                 var env_settings = $("#env_settings .env-item");
-                
+
                 env_settings.each(function(){
                     var item = {};
                     var eleEnvItem = $(this);
@@ -294,6 +299,24 @@
 
                 webStorage.set('env_settings', data);
                 $("#settingsModal").modal('hide');
+            });
+
+			$(document).on('click', '#btn_get_sessid', function(){
+                var mid = $("#user_mid").val();
+
+				if (mid) {
+					get_user_sessid(mid, function(data){
+						if (data['result']) {
+							$("#container_params .params-key").each(function(){
+								var that = $(this);
+								if (that.val() == 'ssid') {
+									that.parent().find(".params-value").val(data['result']);
+								}
+							});
+							$("#getSessidModal").modal('hide');
+						}
+					});
+				}
             });
 
             function get_params_data() {
@@ -313,24 +336,66 @@
                 return data;
             }
 
-            function init_settings_modal() {
+			function init_settings_modal() {
                 var html = '';
-                html += '<div class="modal fade" id="setttingsModal" tabindex="-1" role="dialog">';
+                html += '<div class="modal fade" id="settingsModal" tabindex="-1" role="dialog">';
                 html += '  <div class="modal-dialog">';
                 html += '    <div class="modal-content">';
                 html += '      <div class="modal-header">';
-                html += '        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>';
-                html += '        <h4 class="modal-title" id="myModalLabel">Modal title</h4>';
+                html += '        <button type="button" class="close" data-dismiss="modal">';
+				html += '			<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>';
+				html += '		 </button>';
+                html += '        <h4 class="modal-title" id="settingsModalLabel">接口配置管理</h4>';
                 html += '      </div>';
-                html += '      <div class="modal-body"></div>';
+                html += '      <div class="modal-body" id="env_settings">';
+				html += '		 <div class="input-group box-env">';
+				html += '          <div class="env-item">';
+				html += '            <input type="text" class="form-control input-sm env-item-name" placeholder="接口环境名称">';
+				html += '            <input type="text" class="form-control input-sm env-item-url" placeholder="接口URL">';
+				html += '          </div>';
+				html += '          <span class="input-group-btn">';
+				html += '            <button class="btn btn-danger btn-sm" type="button">删除</button>';
+				html += '          </span>';
+				html += '        </div>';
+				html += '      </div>';
                 html += '      <div class="modal-footer">';
-                html += '        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>';
-                html += '        <button type="button" class="btn btn-primary">Save changes</button>';
+                html += '        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>';
+                html += '        <button type="button" class="btn btn-primary">保存配置</button>';
                 html += '      </div>';
                 html += '    </div>';
                 html += '  </div>';
                 html += '</div>';
-                
+
+                $('body').append(html);
+            }
+
+            function init_get_sessid_modal() {
+                var html = '';
+                html += '<div class="modal fade" id="getSessidModal" tabindex="-1" role="dialog">';
+                html += '  <div class="modal-dialog">';
+                html += '    <div class="modal-content">';
+                html += '      <div class="modal-header">';
+                html += '        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>';
+                html += '        <h4 class="modal-title" id="getSessidModalLabel">获取用户SESSID</h4>';
+                html += '      </div>';
+                html += '      <div class="modal-body">';
+				html += '		 <div class="input-group" style="width:90%;margin-left:5%;">';
+				html += '          <div class="">';
+				html += '            <input type="text" class="form-control user-mid" placeholder="用户MID" id="user_mid">';
+				html += '          </div>';
+				html += '          <span class="input-group-btn">';
+				html += '            <button class="btn btn-default" type="button" id="btn_get_sessid">获取SSID</button>';
+				html += '          </span>';
+				html += '        </div>';
+				html += '	   </div>';
+                //html += '      <div class="modal-footer">';
+                //html += '        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>';
+                //html += '        <button type="button" class="btn btn-primary" id="btn_set_ssid"> 确定 </button>';
+                //html += '      </div>';
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
+
                 $('body').append(html);
             }
 
@@ -379,6 +444,18 @@
                     $("#env_menu").find('.current-env').text(current_env);
                     $("#env_menu .dropdown-menu").html(env_menu_html);
                 }
+            }
+
+			function get_user_sessid(mid, callback) {
+				var url = ApiTool.api_url;
+				var params = {};
+				params['action'] = 'apitool.getUserSessId';
+				params['mid'] = mid;
+                $.get(url, params, function(data){
+
+                        console.log(data);
+						callback(data);
+                });
             }
 
             function request(url, params, callback) {
