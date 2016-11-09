@@ -25,10 +25,6 @@
 			background-color: #337ab7;
 		}
 
-        .input-group-btn .btn-default, .input-group-btn .btn-info, 
-		.input-group-btn .btn-success, .input-group-btn .btn-primary {
-            height: 34px;
-        }
         #result {
 			height: 480px;
             border:none;
@@ -46,6 +42,20 @@
 			margin-top: 12px;
 			margin-bottom: 12px;
 		}
+		#env_settings .input-group, #container_params .input-group {
+			margin-bottom: 2px;
+		}
+
+		button {
+			outline:none;
+		}
+		.input-group-btn .btn-default, .input-group-btn .btn-info, 
+		.input-group-btn .btn-success, .input-group-btn .btn-primary {
+            height: 34px;
+        }
+		.input-group-addon {
+			background-color: #fff;
+		}
         .highlight {
             margin-top: -16px;
             margin-right: 0;
@@ -61,13 +71,32 @@
             border-top: 3px solid #d2d6de;
             margin-bottom: 20px;
         }
-        .box.box-info {
+        .box.box-info, .box.box-history {
             border-top-color: #337ab7;
         }
+		.box.box-history {
+			background: #ffffff;
+		}
+		.history-item {
+			padding: 8px;
+			border-bottom: 1px solid #f2f2f2;
+		}
+		.history-item:hover {
+			background: #f6f6f6;
+		}
+		.history-item-title {
+			font-weight: bold;
+		}
+		.history-item-title, .history-item-url {
+			width: 100%;
+			color: #888888;
+			word-wrap: break-word;
+		}
         .box-header {
-            color: #444;
+            color: #337ab7;
             display: block;
             padding: 10px;
+			font-weight: bold;
             position: relative;
         }
         .box-params, .box-env {
@@ -80,14 +109,30 @@
 		.params-item .params-value, .env-item .env-item-url {
 			border-left: none;
 		}
-		#env_settings .input-group, #container_params .input-group {
-			margin-bottom: 2px;
+		.modal-body {
+			padding: 30px 15px;
 		}
     </style>
 </head>
 <body>
+<div class="container">
+<div class="row" style="margin-top:80px;">
+<div class="col-sm-3">
+	<div class="" style="width:100%;float:left;margin-top:94px;">
+		<div class="box box-history">
+		<div class="box-header">历史记录</div>
+			<div class="box-body">
+				<div class="history-item">
+					<div class="history-item-title">system.getLevelInfoByGameV2</div>
+					<div class="history-item-url">http://192.168.200.21/dfqp/?ssid=45eee3c6a9a879d5cbe61f86dcff866f&action=system.getLevelInfoByGameV2&game_id=1802</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="col-sm-8">
     <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
+        <div style="float:left;width:100%;">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
                     <span class="icon-bar"></span>
@@ -104,7 +149,7 @@
         </div>
     </nav>
 
-    <div class="container" style="margin-top:60px;">
+    <div style="float:left;width:100%;">
         <div class="btn-group" id="env_menu">
             <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
                 <span class="current-env">测试环境</span> <span class="caret"></span>
@@ -115,14 +160,14 @@
         </div>
     </div>
 
-    <div class="container" style="margin-top:60px;">
+    <div class="" style="width:100%;margin-top:60px;float:left;">
         <div class="box box-info">
             <div class="box-body">
                 <div class="input-group" style="margin:8px;">
                     <span class="input-group-addon">Action</span>
                     <input type="text" class="form-control" id="input_method">
                     <span class="input-group-btn">
-                        <button class="btn btn-default" type="button" id="btn_params">参数</button>
+                        <button class="btn btn-default" type="button" data-toggle="button" aria-pressed="false" id="btn_params">参数</button>
                         <button class="btn btn-primary" type="button" id="btn_go"> GO </button>
                     </span>
                 </div>
@@ -142,13 +187,13 @@
         </div>
     </div>
 
-    <div class="container" style="margin-top:120px;">
+    <div style="width:100%;margin-top:80px;float:left;">
         <div class="box box-info">
             <div class="box-header">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-default btn-sm">格式化</button>
-                    <button type="button" class="btn btn-default btn-sm">原始数据</button>
-                    <button type="button" class="btn btn-default btn-sm" id="btn_settings">接口配置管理</button>
+                <div class="btn-group" id="toolbar">
+                    <button type="button" class="btn btn-default btn-sm" data-toggle="button" aria-pressed="false" id="btn_formateddata">格式化</button>
+                    <button type="button" class="btn btn-default btn-sm" data-toggle="button" aria-pressed="false" id="btn_rawdata">原始数据</button>
+                    <button type="button" class="btn btn-default btn-sm" data-toggle="button" aria-pressed="false" id="btn_settings">接口配置管理</button>
                 </div>
             </div>
             <div class="box-body">
@@ -156,7 +201,9 @@
             </div>
         </div>
     </div>
-
+</div>
+</div>
+</div>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/bootstrap.js"></script>
     <script type="text/javascript" src="js/autocomplete.js"></script>
@@ -166,12 +213,15 @@
 	<script type="text/javascript">
 
 		$(document).ready(function(){
-			//todo
-			console.info('API接口调试工具');
 
-            var ApiTool = {};
+			//console.info('API接口调试工具');
+
 			var jsonFormatter = new JSONFormatter();
+			var ApiTool = {};
+
 			ApiTool.api_url = '';
+			ApiTool.rawData = '';
+			ApiTool.formatedData = '';
 
             //初始化设置面板
             init_settings_modal();
@@ -279,8 +329,29 @@
                 });
             });
 
+			$("#btn_rawdata").click(function(){
+				$("#result").html(ApiTool.rawData);
+			});
+
+			$("#btn_formateddata").click(function(){
+				if (ApiTool.formatedData) {
+					$("#result").html(ApiTool.formatedData);
+				} else {
+					$("#result").html(ApiTool.rawData);
+				}
+			});
+
 			$("#btn_settings").click(function(){
                 $("#settingsModal").modal('show');
+            });
+
+			$("#toolbar button").click(function(){
+				$("#toolbar button").each(function(){
+					$(this).removeClass('active');
+					$(this).attr('aria-pressed', false);
+				});
+
+				//$(this).focus().blur();
             });
 
             $(document).on('click', '#btn_save_settings', function(){
@@ -480,6 +551,7 @@
                             cleanData = data;
                         }
 
+						ApiTool.rawData = data;
                         // Covert, and catch exceptions on failure
                         try {
                             // var jsonObj = this.nativeJSON.decode(cleanData);
@@ -487,6 +559,7 @@
 								var jsonObj = JSON.parse(cleanData);
 								if ( jsonObj ) {
 								  output = jsonFormatter.jsonToHTML(jsonObj, callbackData, url);
+								  ApiTool.formatedData = output;
 								} else {
 								  throw "There was no object!";
 								}
