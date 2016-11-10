@@ -28,7 +28,7 @@
         #result {
 			height: 480px;
             border:none;
-			background: #f6f6f6;
+			background: #f7f7f7;
             border-radius: 0;
         }
         #input_method {
@@ -74,7 +74,7 @@
         .box {
 			float: left;
 			width: 100%;
-            background: #f2f2f2;
+            background: #f5f5f5;
             border-top: 3px solid #d2d6de;
             margin-bottom: 20px;
         }
@@ -534,7 +534,7 @@
 				html += '      </div>';
                 html += '      <div class="modal-footer">';
                 html += '        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>';
-                html += '        <button type="button" class="btn btn-primary">保存配置</button>';
+                html += '        <button type="button" class="btn btn-primary" id="btn_save_settings">保存配置</button>';
                 html += '      </div>';
                 html += '    </div>';
                 html += '  </div>';
@@ -681,55 +681,37 @@
 				var params = {};
 				params['action'] = 'apitool.getUserSessId';
 				params['mid'] = mid;
-                $.get(url, params, function(data){
 
-                        console.log(data);
-						callback(data);
+                $.get(url, params, function(data){
+					callback(data);
                 });
             }
 
             function request(url, params, callback) {
                 $.get(url, params, function(data){
-
                         var output = data;
                         var cleanData = '';
                         var callbackData = '';
 						var jsonRegex = /^\s*([\[\{].*[\}\]])\s*$/;
-						var jsonpRegex = /^[\s\u200B\uFEFF]*([\w$\[\]\.]+)[\s\u200B\uFEFF]*\([\s\u200B\uFEFF]*([\[{][\s\S]*[\]}])[\s\u200B\uFEFF]*\);?[\s\u200B\uFEFF]*$/;
-						var jsonpRegex2 = /([\[\{][\s\S]*[\]\}])\);/ // more liberal support
 						var isJson = jsonRegex.test(data);
-						var isJsonp = jsonpRegex.test(data);
-
-                        var callback_results = jsonpRegex.exec(data);
-                        if (callback_results && callback_results.length == 3) {
-                            //console.log("THIS IS JSONP");
-                            callbackData = callback_results[1];
-                            cleanData = callback_results[2];
-                        } else if (isJson) {
-                            //console.log("Vanilla JSON");
-                            cleanData = data;
-                        }
 
 						ApiTool.rawData = data;
-                        // Covert, and catch exceptions on failure
+
                         try {
-                            // var jsonObj = this.nativeJSON.decode(cleanData);
-							if (isJson || isJsonp) {
-								var jsonObj = JSON.parse(cleanData);
+							if (isJson) {
+								var jsonObj = JSON.parse(data);
 								if ( jsonObj ) {
-								  output = jsonFormatter.jsonToHTML(jsonObj, callbackData, url);
-								  ApiTool.formatedData = output;
-								} else {
-								  throw "There was no object!";
+									output = jsonFormatter.jsonToHTML(jsonObj, callbackData, url);
+									ApiTool.formatedData = output;
 								}
 							}
-                            //callback
+
+                            //Callback
                             if (callback) {
                                 callback(output);
                             }
                         } catch(e) {
                             console.log(e);
-                            output = jsonFormatter.errorPage(e, data, url);
                         }
                 });
             }
