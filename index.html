@@ -26,10 +26,15 @@
 		}
 
         #result {
+			width: 100%;
 			height: 480px;
-            border:none;
+            border: none;
 			background: #f7f7f7;
-            border-radius: 0;
+            float: left;
+			overflow-y: scroll;
+			border-radius: 0;
+			font-size: 12px;
+			font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
         }
         #input_method {
             border-radius: 0;
@@ -204,7 +209,7 @@
                 </div>
             </div>
             <div class="box-body">
-                <pre id="result"></pre>
+                <div id="result"></div>
             </div>
         </div>
     </div>
@@ -242,8 +247,25 @@
 
             $("#input_method").autocomplete({
 				openOnFocus:true,
+				autoselect:true,
                 source:[apiListData]
-            });
+            }).on('blur', function(){
+				var data = [];
+				var key = $(this).val();
+				var regex = new RegExp(key);
+				var history = webStorage.get('history_data') || sampleHistoryData;
+
+				if (key) {
+					for (i=0; i<history.length; i++) {
+						if (regex.test(history[i]['title'])) {
+							data.push(history[i]);
+						}
+					}
+
+					//更新历史记录列表
+					init_history_list(data);
+				}
+			});
 
             $("#btn_params").click(function(){
                 $("#container_params").toggle();
@@ -638,9 +660,9 @@
                 }
             }
 
-			function init_history_list() {
+			function init_history_list(data) {
 				var html = '';
-				var history = webStorage.get('history_data') || sampleHistoryData;
+				var history = data || webStorage.get('history_data') || sampleHistoryData;
 
 				for (var i=0; i<history.length; i++) {
 					html += get_history_html(history[i]);
