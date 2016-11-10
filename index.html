@@ -11,18 +11,18 @@
 
 		/*Chrome滚动条样式*/
 		::-webkit-scrollbar {
-			width: 8px;
-			height: 8px;
+			width: 4px;
+			height: 4px;
 
 		}
 		::-webkit-scrollbar-track {
-			-webkit-box-shadow: inset 0 0 1px rgba(0,0,0,0.5);
+			-webkit-box-shadow: inset 0 0 1px rgba(0,0,0,0.8);
 			border-radius: 4px;
 		}
 		::-webkit-scrollbar-thumb {
 			border-radius: 4px;
-			-webkit-box-shadow: inset 0 0 1px rgba(0,0,0,.5);
-			background-color: #337ab7;
+			-webkit-box-shadow: inset 0 0 1px rgba(0,0,0,.8);
+			background-color: #dddddd;
 		}
 
         #result {
@@ -42,6 +42,10 @@
 			margin-top: 12px;
 			margin-bottom: 12px;
 		}
+		#history_list {
+			max-height: 700px;
+			overflow-y: scroll;
+		}
 		#env_settings .input-group, #container_params .input-group {
 			margin-bottom: 2px;
 		}
@@ -55,6 +59,9 @@
         }
 		.input-group-addon {
 			background-color: #fff;
+		}
+		.modal {
+			top: 20%;
 		}
         .highlight {
             margin-top: -16px;
@@ -79,6 +86,7 @@
 		}
 		.history-item {
 			padding: 8px;
+			cursor: pointer;
 			border-bottom: 1px solid #f2f2f2;
 		}
 		.history-item:hover {
@@ -118,15 +126,10 @@
 <div class="container">
 <div class="row" style="margin-top:80px;">
 <div class="col-sm-3">
-	<div class="" style="width:100%;float:left;margin-top:94px;">
+	<div style="width:100%;float:left;margin-top:74px;">
 		<div class="box box-history">
 		<div class="box-header">历史记录</div>
-			<div class="box-body">
-				<div class="history-item">
-					<div class="history-item-title">system.getLevelInfoByGameV2</div>
-					<div class="history-item-url">http://192.168.200.21/dfqp/?ssid=45eee3c6a9a879d5cbe61f86dcff866f&action=system.getLevelInfoByGameV2&game_id=1802</div>
-				</div>
-			</div>
+			<div class="box-body" id="history_list"></div>
 		</div>
 	</div>
 </div>
@@ -150,17 +153,20 @@
     </nav>
 
     <div style="float:left;width:100%;">
+		<div style="float:right;margin-left:20px;">
+			<button type="button" class="btn btn-primary" id="btn_settings"><span class="glyphicon glyphicon-cog"></span> 设置</button>
+		</div>
         <div class="btn-group" id="env_menu">
             <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                <span class="current-env">测试环境</span> <span class="caret"></span>
+                <span class="current-env"></span> <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-                <li><a href="#">测试环境</a></li>
+                <li><a href="#"></a></li>
             </ul>
         </div>
     </div>
 
-    <div class="" style="width:100%;margin-top:60px;float:left;">
+    <div class="" style="width:100%;margin-top:40px;float:left;">
         <div class="box box-info">
             <div class="box-body">
                 <div class="input-group" style="margin:8px;">
@@ -179,7 +185,9 @@
 							<input type="text" class="form-control input-sm params-value" placeholder="value">
 						</div>
 						<span class="input-group-btn">
-							<button class="btn btn-danger btn-sm" type="button">删除</button>
+							<button class="btn btn-danger btn-sm" type="button">
+								<span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+							</button>
 						</span>
 					</div>
 				</div>
@@ -187,13 +195,12 @@
         </div>
     </div>
 
-    <div style="width:100%;margin-top:80px;float:left;">
+    <div style="width:100%;margin-top:40px;float:left;">
         <div class="box box-info">
             <div class="box-header">
                 <div class="btn-group" id="toolbar">
-                    <button type="button" class="btn btn-default btn-sm" data-toggle="button" aria-pressed="false" id="btn_formateddata">格式化</button>
+                    <button type="button" class="btn btn-default btn-sm active" data-toggle="button" aria-pressed="true" id="btn_formateddata">格式化</button>
                     <button type="button" class="btn btn-default btn-sm" data-toggle="button" aria-pressed="false" id="btn_rawdata">原始数据</button>
-                    <button type="button" class="btn btn-default btn-sm" data-toggle="button" aria-pressed="false" id="btn_settings">接口配置管理</button>
                 </div>
             </div>
             <div class="box-body">
@@ -210,6 +217,7 @@
     <script type="text/javascript" src="js/jsonview.js"></script>
     <script type="text/javascript" src="js/webstorage.js"></script>
 	<script type="text/javascript" src="js/methods.js"></script>
+	<script type="text/javascript" src="js/sampledata.js"></script>
 	<script type="text/javascript">
 
 		$(document).ready(function(){
@@ -219,7 +227,7 @@
 			var jsonFormatter = new JSONFormatter();
 			var ApiTool = {};
 
-			ApiTool.api_url = '';
+			ApiTool.apiUrl = '';
 			ApiTool.rawData = '';
 			ApiTool.formatedData = '';
 
@@ -229,6 +237,8 @@
 			init_get_sessid_modal();
             //初始化设置
             init_settings();
+			//初始化历史记录
+			init_history_list();
 
             $("#input_method").autocomplete({
 				openOnFocus:true,
@@ -247,13 +257,13 @@
             //接口环境菜单选项
             $("#env_menu .dropdown-menu").find("a").click(function() {
                 var envname = $(this).html();
-				var settings = webStorage.get('env_settings');
+				var settings = webStorage.get('env_settings') || sampleEnvSettings;
 
                 if (settings) {
                     var len = settings.length;
                     for (var i=0; i<len; i++) {
                         if (envname == settings[i]['name']) {
-							ApiTool.api_url = settings[i]['url'];
+							ApiTool.apiUrl = settings[i]['url'];
 							break;
                         }
                     }
@@ -272,7 +282,9 @@
                 html += '    <input type="text" class="form-control input-sm params-value" placeholder="value">';
                 html += '  </div>';
                 html += '  <span class="input-group-btn params-item-delete">';
-                html += '    <button class="btn btn-danger btn-sm" type="button">删除</button>';
+                html += '    <button class="btn btn-danger btn-sm" type="button">';
+				html += '      <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>';
+				html += '    </button>';
                 html += '  </span>';
                 html += '</div>';
 
@@ -296,11 +308,50 @@
                 html += '    <input type="text" class="form-control input-sm env-item-url" placeholder="接口URL">';
                 html += '  </div>';
                 html += '  <span class="input-group-btn env-item-delete">';
-                html += '    <button class="btn btn-danger btn-sm" type="button">删除</button>';
+                html += '    <button class="btn btn-danger btn-sm" type="button">';
+				html += '      <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>';
+				html += '    </button>';
                 html += '  </span>';
                 html += '</div>';
 
                 $("#env_settings").append(html);
+            });
+
+			$(document).on('click', '#history_list .history-item', function(){
+				var url = $(this).find(".history-item-url:eq(0)").text();
+				var url_parts = parse_url(url);
+				var action = '';
+				var params = url_parts['params'] || [];
+				var api_url = url_parts['api_url'] || '';
+
+				for(var i=0; i < params.length; i++) {
+					if (params[i]['key'] == 'action') {
+						$("#input_method").val(params[i]['value']);
+						break;
+					}
+				}
+
+				var html = get_params_html(params);
+				if (html) {
+					$("#container_params").html(html);
+					$("#container_params").show();
+					$("#btn_params").addClass('active');
+				}
+
+				if (api_url) {
+				    var settings = webStorage.get('env_settings') || sampleEnvSettings;
+
+					if (settings) {
+						var len = settings.length;
+						for (var i=0; i<len; i++) {
+							if (api_url == settings[i]['url']) {
+								ApiTool.apiUrl = settings[i]['url'];
+								$("#env_menu").find('.current-env').text(settings[i]['name']);
+								break;
+							}
+						}
+					}
+				}
             });
 
             $(document).on('click', '#container_params .params-item-delete', function(){
@@ -317,15 +368,41 @@
 
 				if (apiMethod) {
 					params['action'] = apiMethod;
+				} else {
+					return;
 				}
 
-				if (ApiTool.api_url) {
-					params['api_url'] = ApiTool.api_url;
+				if (ApiTool.apiUrl) {
+					params['api_url'] = ApiTool.apiUrl;
 				}
 
                 //发送请求
-                request('get.php', params, function(data){
-                    $("#result").html(data);
+                request('get.php', params, function(){
+					var formated = $("#btn_formateddata").attr("aria-pressed");
+					if (formated == "true") {
+						$("#result").html(ApiTool.formatedData);
+					} else {
+						$("#result").html(ApiTool.rawData);
+					}
+
+					//加入到历史列表
+					var temp = [];
+					for (k in params) {
+						if (k == 'api_url') {
+							continue;
+						}
+						temp.push(k + '=' + params[k]);
+					}
+
+					var data = {};
+					data['title'] = params['action'];
+					data['url'] = temp.length ? ApiTool.apiUrl + '?' + temp.join('&') : ApiTool.apiUrl;
+					add_to_history(data);
+					if (data['title'] && data['url']) {
+						var html = get_history_html(data);
+						$("#history_list").prepend(html);
+					}
+					
                 });
             });
 
@@ -348,10 +425,8 @@
 			$("#toolbar button").click(function(){
 				$("#toolbar button").each(function(){
 					$(this).removeClass('active');
-					$(this).attr('aria-pressed', false);
+					$(this).attr('aria-pressed', 'false');
 				});
-
-				//$(this).focus().blur();
             });
 
             $(document).on('click', '#btn_save_settings', function(){
@@ -390,6 +465,32 @@
 				}
             });
 
+			function parse_url(url) {
+				var result = {};
+				var regex = /(.*)\?(.*)/i;
+
+				if (url) {
+					var parts = regex.exec(url);
+					if (parts) {
+						var params = [];
+						result['api_url'] = parts[1] ? parts[1]:'';
+						if (parts[2]) {
+							var items = parts[2].split('&');
+							for (var i=0; i<items.length; i++) {
+								var item = {};
+								var temp = items[i].split('=');
+								item['key'] = temp[0];
+								item['value'] = temp[1];
+								params.push(item);
+							}
+						}
+						result['params'] = params;
+					}
+				}
+
+				return result;
+			}
+
             function get_params_data() {
                 var data = {};
                 var params = $("#container_params .params-item");
@@ -425,7 +526,9 @@
 				html += '            <input type="text" class="form-control input-sm env-item-url" placeholder="接口URL">';
 				html += '          </div>';
 				html += '          <span class="input-group-btn">';
-				html += '            <button class="btn btn-danger btn-sm" type="button">删除</button>';
+				html += '    	     <button class="btn btn-danger btn-sm" type="button">';
+				html += '      		   <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>';
+				html += '    		 </button>';
 				html += '          </span>';
 				html += '        </div>';
 				html += '      </div>';
@@ -459,10 +562,6 @@
 				html += '          </span>';
 				html += '        </div>';
 				html += '	   </div>';
-                //html += '      <div class="modal-footer">';
-                //html += '        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>';
-                //html += '        <button type="button" class="btn btn-primary" id="btn_set_ssid"> 确定 </button>';
-                //html += '      </div>';
                 html += '    </div>';
                 html += '  </div>';
                 html += '</div>';
@@ -479,13 +578,15 @@
                 html += '    <input type="text" value="' + item.url + '" class="form-control input-sm env-item-url" placeholder="接口URL">';
                 html += '  </div>';
                 html += '  <span class="input-group-btn env-item-delete">';
-                html += '    <button class="btn btn-danger btn-sm" type="button">删除</button>';
+                html += '    <button class="btn btn-danger btn-sm" type="button">';
+				html += '      <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>';
+				html += '    </button>';
                 html += '  </span>';
                 html += '</div>';
 
                 return html;
             }
-            
+
             function get_env_menu_html(item) {
                 var html = '';
 
@@ -494,18 +595,38 @@
                 return html;
             }
 
+			function get_params_html(params) {
+				var html = '';
+
+				for (var i=0; i < params.length; i++) {
+					html += '<div class="input-group box-params">';
+					html += '  <div class="params-item">'
+					html += '   <input type="text" class="form-control input-sm params-key" placeholder="key" value="' + params[i]['key'] + '">'
+					html += '   <input type="text" class="form-control input-sm params-value" placeholder="value" value="' + params[i]['value'] + '">'
+					html += '  </div>'
+					html += '  <span class="input-group-btn params-item-delete">'
+					html += '    <button class="btn btn-danger btn-sm" type="button">';
+					html += '      <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>';
+					html += '    </button>';
+					html += '  </span>'
+					html += '</div>';
+				}
+
+				return html;
+			}
+
             function init_settings() {
                 var env_settings_html = '';
                 var env_menu_html = '';
                 var current_env = '';
-                var settings = webStorage.get('env_settings');
-                
+                var settings = webStorage.get('env_settings') || sampleEnvSettings;
+
                 if (settings) {
                     var len = settings.length;
                     for (var i=0; i<len; i++) {
                         if (i == 0) {
                             current_env = settings[i]['name'];
-							ApiTool.api_url = settings[i]['url'];
+							ApiTool.apiUrl = settings[i]['url'];
                         }
                         env_settings_html += get_env_item_html(settings[i]);
                         env_menu_html += get_env_menu_html(settings[i]);
@@ -517,8 +638,46 @@
                 }
             }
 
+			function init_history_list() {
+				var html = '';
+				var history = webStorage.get('history_data') || sampleHistoryData;
+
+				for (var i=0; i<history.length; i++) {
+					html += get_history_html(history[i]);
+				}
+
+				$("#history_list").html(html);
+			}
+
+			function get_history_html(data) {
+				var html = '';
+
+				html += '<div class="history-item">';
+				html += '  <div class="history-item-title">' + data['title'] + '</div>';
+				html += '  <div class="history-item-url">' + data['url'] + '</div>';
+				html += '</div>';
+
+				return html;
+			}
+
+			function add_to_history(data) {
+				if (data['title'] && data['url']) {
+					var history = webStorage.get('history_data') || [];
+
+					if (history) {
+						history.unshift(data);
+					} else {
+						history.push(data);
+					}
+
+					return webStorage.set('history_data', history);
+				}
+
+				return false;
+			}
+
 			function get_user_sessid(mid, callback) {
-				var url = ApiTool.api_url;
+				var url = ApiTool.apiUrl;
 				var params = {};
 				params['action'] = 'apitool.getUserSessId';
 				params['mid'] = mid;
