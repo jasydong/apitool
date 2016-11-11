@@ -46,6 +46,8 @@
 			display: none;
 			margin-top: 12px;
 			margin-bottom: 12px;
+			max-height: 320px;
+			overflow-y: scroll;
 		}
 		#history_list {
 			max-height: 700px;
@@ -133,7 +135,11 @@
 <div class="col-sm-3">
 	<div style="width:100%;float:left;margin-top:74px;">
 		<div class="box box-history">
-		<div class="box-header">历史记录</div>
+			<div class="box-header"><span>历史记录</span>
+				<button type="button" class="btn btn-primary btn-sm" style="margin-left:20px;" id="btn_reset_historydata">
+					<span>重置历史记录</span>
+				</button>
+			</div>
 			<div class="box-body" id="history_list"></div>
 		</div>
 	</div>
@@ -449,6 +455,11 @@
 					$(this).removeClass('active');
 					$(this).attr('aria-pressed', 'false');
 				});
+            });
+
+			$("#btn_reset_historydata").click(function(){
+                webStorage.remove('history_data');
+				init_history_list();
             });
 
             $(document).on('click', '#btn_save_settings', function(){
