@@ -252,6 +252,8 @@
 			init_history_list();
 
             $("#input_method").autocomplete({
+				limit: 1000,
+				visibleLimit: 1000,
 				openOnFocus:true,
 				autoselect:true,
                 source:[apiListData]
