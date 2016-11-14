@@ -248,6 +248,10 @@
 			init_get_sessid_modal();
             //初始化设置
             init_settings();
+			//初始化历史纪录(样例数据)
+			if (!webStorage.get('history_data')) {
+				init_history_data(sampleHistoryData);
+			}
 			//初始化历史记录
 			init_history_list();
 
@@ -672,6 +676,14 @@
                     $("#env_menu .dropdown-menu").html(env_menu_html);
                 }
             }
+
+			function init_history_data(data) {
+				if (data) {
+					webStorage.set('history_data', data);
+				}
+
+				return true;
+			}
 
 			function init_history_list(data) {
 				var html = '';
