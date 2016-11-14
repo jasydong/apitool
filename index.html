@@ -701,7 +701,7 @@
 
 				html += '<div class="history-item">';
 				html += '  <div class="history-item-title">' + data['title'] + '</div>';
-				html += '  <div class="history-item-url">' + data['url'] + '</div>';
+				html += '  <div class="history-item-url">' + data['url'].replace(/&/g, '&amp;') + '</div>';
 				html += '</div>';
 
 				return html;
