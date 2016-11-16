@@ -9,8 +9,5 @@
   "require": {
     "php": ">=5.2.0"
   },
-  "autoload": {
-    }
-  },
   "minimum-stability": "dev"
 }
