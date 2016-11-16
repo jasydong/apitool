@@ -1,0 +1,16 @@
+{
+  "name": "jasydong/apitool",
+  "description": "An Api Debug Tool",
+  "type": "apitool",
+  "version": "1.0.0",
+  "license": [
+    "OSL-3.0"
+  ],
+  "require": {
+    "php": ">=5.2.0"
+  },
+  "autoload": {
+    }
+  },
+  "minimum-stability": "dev"
+}
