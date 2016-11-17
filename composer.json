@@ -2,7 +2,7 @@
   "name": "jasydong/apitool",
   "description": "An Api Debug Tool",
   "type": "apitool",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "license": [
     "OSL-3.0"
   ],
