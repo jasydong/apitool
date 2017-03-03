@@ -261,7 +261,7 @@
 				openOnFocus:true,
 				autoselect:true,
                 source:[apiListData]
-            }).on('blur', function(){
+            }).on('input', function(){
 				var data = [];
 				var key = $(this).val();
 				var regex = new RegExp(key);
